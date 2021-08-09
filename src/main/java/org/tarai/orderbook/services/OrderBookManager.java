@@ -41,6 +41,7 @@ public class OrderBookManager {
 
     class L2SnapshotMessageHandler implements MessageHandler<L2SnapshotMessage>{
         private void processTicks(List<Tick> ticks, Map<BigDecimal,BigDecimal> map){
+            map.clear();
             List<Tick> list = ticks.stream().limit(orderBookConfig.getLevel()).collect(Collectors.toList());
             for (Tick tick : list)
                 map.put(tick.getPrice(),tick.getSize());
