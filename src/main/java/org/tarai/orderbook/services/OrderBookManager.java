@@ -3,10 +3,7 @@ package org.tarai.orderbook.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tarai.orderbook.config.OrderBookConfig;
-import org.tarai.orderbook.message.L2SnapshotMessage;
-import org.tarai.orderbook.message.L2UpdateMessage;
-import org.tarai.orderbook.message.Message;
-import org.tarai.orderbook.message.Tick;
+import org.tarai.orderbook.message.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -63,26 +60,24 @@ public class OrderBookManager {
                tickUpdate -> {
                    switch (tickUpdate.getSide()){
                        case BUY:
-                           if(tickUpdate.getSize().compareTo(BigDecimal.ZERO) == 0){
-                               bidsMap.remove(tickUpdate.getPrice());
-                           } else {
-                               bidsMap.put(tickUpdate.getPrice(),tickUpdate.getSize());
-                           }
-                           if(bidsMap.size()>orderBookConfig.getLevel())
-                               bidsMap.pollLastEntry();
+                           processTickUpdate(tickUpdate, bidsMap);
                            break;
                        case SELL:
-                           if(tickUpdate.getSize().compareTo(BigDecimal.ZERO) == 0){
-                               asksMap.remove(tickUpdate.getPrice());
-                           } else {
-                               asksMap.put(tickUpdate.getPrice(),tickUpdate.getSize());
-                           }
-                           if(asksMap.size()>orderBookConfig.getLevel())
-                               asksMap.pollLastEntry();
+                           processTickUpdate(tickUpdate, asksMap);
                            break;
                    }
                }
             );
+        }
+
+        private void processTickUpdate(TickUpdate tickUpdate, TreeMap<BigDecimal, BigDecimal> bidsMap) {
+            if (tickUpdate.getSize().compareTo(BigDecimal.ZERO) == 0) {
+                bidsMap.remove(tickUpdate.getPrice());
+            } else {
+                bidsMap.put(tickUpdate.getPrice(), tickUpdate.getSize());
+            }
+            if (bidsMap.size() > orderBookConfig.getLevel())
+                bidsMap.pollLastEntry();
         }
     }
 
